@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "LoTengoApp",
+    "name": "Lo Tengo",
     "slug": "LoTengoApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -13,7 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrar solicitudes cercanas.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tu galería para adjuntar fotos.",
+        "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para tomar fotos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +26,26 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-location",
+      "expo-image-picker",
+      "expo-font"
+    ]
   }
 }
