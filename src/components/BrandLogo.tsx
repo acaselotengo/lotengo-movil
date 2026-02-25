@@ -6,6 +6,7 @@ interface BrandLogoProps {
   variant?: "full" | "mark";
   style?: StyleProp<ImageStyle>;
   accessibilityLabel?: string;
+  containerPadding?: number;
 }
 
 const logoSource = require("../../assets/logoLotengo.png");
@@ -15,10 +16,11 @@ function BrandLogoInner({
   variant = "full",
   style,
   accessibilityLabel = "LO TENGO",
+  containerPadding = 8,
 }: BrandLogoProps) {
   return (
     <View
-      style={{ padding: 8 }}
+      style={{ padding: containerPadding }}
       accessible
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}

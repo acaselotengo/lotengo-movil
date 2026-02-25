@@ -51,26 +51,21 @@ export default function SellerMapScreen({ navigation }: SellerMapScreenProps) {
               latitude: req.location.lat,
               longitude: req.location.lng,
             }}
-            title={req.title}
-            description={formatDate(req.createdAt)}
             pinColor="#ad3020"
+            onCalloutPress={() =>
+              navigation.navigate("SellerRequestDetail", { requestId: req.id })
+            }
           >
-            <Callout
-              onPress={() =>
-                navigation.navigate("SellerRequestDetail", {
-                  requestId: req.id,
-                })
-              }
-            >
-              <View style={{ width: 180, padding: 4 }}>
-                <Text style={{ fontWeight: "bold", fontSize: 14 }}>
+            <Callout tooltip={false}>
+              <View style={{ width: 200, padding: 6 }}>
+                <Text style={{ fontWeight: "bold", fontSize: 14, color: "#15163e" }}>
                   {req.title}
                 </Text>
                 <Text style={{ fontSize: 12, color: "#8694b8", marginTop: 2 }}>
                   {formatDate(req.createdAt)}
                 </Text>
-                <Text style={{ fontSize: 12, color: "#ad3020", marginTop: 4 }}>
-                  Toca para ver detalles →
+                <Text style={{ fontSize: 12, color: "#ad3020", marginTop: 4, fontWeight: "600" }}>
+                  Toca para ver →
                 </Text>
               </View>
             </Callout>

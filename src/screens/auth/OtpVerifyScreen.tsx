@@ -1,6 +1,6 @@
 import { OtpVerifyScreenProps } from "../../types/navigation";
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,68 +55,74 @@ export default function OtpVerifyScreen({ route, navigation }: OtpVerifyScreenPr
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-6" keyboardShouldPersistTaps="handled">
-      <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 mb-6">
-        <Ionicons name="chevron-back" size={24} color="#15163e" />
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-white"
+    >
+      <ScrollView className="flex-1 px-6" keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 mb-6">
+          <Ionicons name="chevron-back" size={24} color="#15163e" />
+        </TouchableOpacity>
 
-      <Text className="text-2xl font-bold text-text-primary mb-2">
-        Verificar código
-      </Text>
-      <Text className="text-sm text-text-secondary mb-6">
-        Ingresa el código enviado a {email}
-      </Text>
+        <Text className="text-2xl font-bold text-text-primary mb-2">
+          Verificar código
+        </Text>
+        <Text className="text-sm text-text-secondary mb-6">
+          Ingresa el código enviado a {email}
+        </Text>
 
-      <Controller
-        control={control}
-        name="otp"
-        render={({ field: { onChange, value } }) => (
-          <TextField
-            label="Código OTP"
-            placeholder="123456"
-            keyboardType="number-pad"
-            maxLength={6}
-            value={value}
-            onChangeText={onChange}
-            error={errors.otp?.message}
-          />
-        )}
-      />
+        <Controller
+          control={control}
+          name="otp"
+          render={({ field: { onChange, value } }) => (
+            <TextField
+              label="Código OTP"
+              placeholder="123456"
+              keyboardType="number-pad"
+              maxLength={6}
+              value={value}
+              onChangeText={onChange}
+              error={errors.otp?.message}
+            />
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="newPassword"
-        render={({ field: { onChange, value } }) => (
-          <PasswordField
-            label="Nueva contraseña"
-            placeholder="Mínimo 8 caracteres"
-            value={value}
-            onChangeText={onChange}
-            error={errors.newPassword?.message}
-          />
-        )}
-      />
+        <Controller
+          control={control}
+          name="newPassword"
+          render={({ field: { onChange, value } }) => (
+            <PasswordField
+              label="Nueva contraseña"
+              placeholder="Mínimo 8 caracteres"
+              value={value}
+              onChangeText={onChange}
+              error={errors.newPassword?.message}
+            />
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="confirmPassword"
-        render={({ field: { onChange, value } }) => (
-          <PasswordField
-            label="Confirmar contraseña"
-            placeholder="Repite tu contraseña"
-            value={value}
-            onChangeText={onChange}
-            error={errors.confirmPassword?.message}
-          />
-        )}
-      />
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field: { onChange, value } }) => (
+            <PasswordField
+              label="Confirmar contraseña"
+              placeholder="Repite tu contraseña"
+              value={value}
+              onChangeText={onChange}
+              error={errors.confirmPassword?.message}
+            />
+          )}
+        />
 
-      <PrimaryButton
-        title="Cambiar contraseña"
-        onPress={handleSubmit(onSubmit)}
-        loading={loading}
-        className="mt-4"
-      />
-    </ScrollView>
+        <PrimaryButton
+          title="Cambiar contraseña"
+          onPress={handleSubmit(onSubmit)}
+          loading={loading}
+          className="mt-4"
+        />
+        <View className="h-8" />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

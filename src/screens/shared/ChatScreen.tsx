@@ -1,4 +1,5 @@
-import { ChatScreenProps } from "../../types/navigation";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BuyerStackParamList, SellerStackParamList } from "../../types/navigation";
 import React, { useState, useCallback, useRef } from "react";
 import {
   View,
@@ -19,6 +20,10 @@ import { useAuthStore } from "../../store/authStore";
 import { getChatById, getMessages, sendMessage } from "../../services/chatService";
 import { getUserById } from "../../services/authService";
 import { Message, Chat } from "../../types";
+
+type ChatScreenProps =
+  | NativeStackScreenProps<BuyerStackParamList, "Chat">
+  | NativeStackScreenProps<SellerStackParamList, "Chat">;
 
 export default function ChatScreen({ route }: ChatScreenProps) {
   const { chatId } = route.params;
@@ -60,7 +65,7 @@ export default function ChatScreen({ route }: ChatScreenProps) {
   const handlePickImage = async () => {
     if (!user) return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: "images" as const,
       quality: 0.7,
     });
     if (!result.canceled && result.assets[0]) {
@@ -90,6 +95,7 @@ export default function ChatScreen({ route }: ChatScreenProps) {
           />
         )}
         contentContainerStyle={{ paddingVertical: 10 }}
+        initialNumToRender={20}
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: false })
         }

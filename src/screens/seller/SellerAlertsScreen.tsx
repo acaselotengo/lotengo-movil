@@ -136,6 +136,9 @@ export default function SellerAlertsScreen({ navigation }: SellerAlertsScreenPro
         data={enrichedRequests}
         keyExtractor={(item) => item.request.id}
         renderItem={renderItem}
+        initialNumToRender={8}
+        maxToRenderPerBatch={4}
+        windowSize={5}
         ListEmptyComponent={
           <EmptyState
             icon="document-text-outline"

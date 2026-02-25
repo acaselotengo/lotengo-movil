@@ -1,11 +1,9 @@
-import { BuyerProfileScreenProps } from "../../types/navigation";
+import { BuyerProfileScreenProps, SellerProfileScreenProps } from "../../types/navigation";
 import React from "react";
 import { View, Text, ScrollView, Alert, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
-import AppHeader from "../../components/ui/AppHeader";
-import Card from "../../components/ui/Card";
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import RatingStars from "../../components/ui/RatingStars";
 import StatCard from "../../components/ui/StatCard";
@@ -13,8 +11,12 @@ import BrandLogo from "../../components/BrandLogo";
 import { useAuthStore } from "../../store/authStore";
 import { resetDb } from "../../db/mockDb";
 import { getUserById } from "../../services/authService";
+import { getRequestsByBuyer } from "../../services/requestService";
+import { getOffersBySeller } from "../../services/offerService";
 
-export default function ProfileScreen({ navigation }: BuyerProfileScreenProps) {
+type ProfileScreenProps = BuyerProfileScreenProps | SellerProfileScreenProps;
+
+export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -50,6 +52,24 @@ export default function ProfileScreen({ navigation }: BuyerProfileScreenProps) {
 
   const isSeller = displayUser.role === "seller";
 
+  // Stats reales según rol
+  const buyerRequests = !isSeller ? getRequestsByBuyer(displayUser.id) : [];
+  const buyerRequestCount = buyerRequests.length;
+  const buyerActiveCount = buyerRequests.filter(
+    (r) => r.status === "OPEN" || r.status === "NEGOTIATING"
+  ).length;
+  const sellerOffers = isSeller ? getOffersBySeller(displayUser.id) : [];
+  const sellerOfferCount = sellerOffers.length;
+  const sellerAcceptedCount = sellerOffers.filter((o) => o.status === "ACCEPTED").length;
+
+  // Iniciales del nombre para avatar
+  const initials = displayUser.name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
   return (
     <View className="flex-1 bg-bg-light">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 30 }}>
@@ -61,8 +81,11 @@ export default function ProfileScreen({ navigation }: BuyerProfileScreenProps) {
           className="px-5 pt-6 pb-16 rounded-b-3xl"
         >
           <Animated.View entering={FadeIn.duration(500)} className="items-center">
-            <View className="w-20 h-20 bg-white/20 rounded-full items-center justify-center mb-3" style={styles.avatar}>
-              <Ionicons name="person" size={36} color="#fff" />
+            <View
+              className="w-20 h-20 rounded-full bg-white/25 items-center justify-center mb-3"
+              style={styles.avatar}
+            >
+              <Text className="text-3xl font-bold text-white">{initials}</Text>
             </View>
             <Text className="text-2xl font-bold text-white">{displayUser.name}</Text>
             <View className="bg-white/20 rounded-full px-4 py-1 mt-2">
@@ -86,23 +109,40 @@ export default function ProfileScreen({ navigation }: BuyerProfileScreenProps) {
         {/* Stats overlapping */}
         <Animated.View entering={FadeInDown.duration(400).delay(100)} className="px-4 -mt-8">
           <View className="flex-row">
-            <StatCard
-              value={displayUser.ratingAvg ? displayUser.ratingAvg.toFixed(1) : "N/A"}
-              label="Rating"
-              color={isSeller ? "#ef741c" : "#ad3020"}
-            />
-            <StatCard
-              value={displayUser.ratingCount}
-              label="Reseñas"
-              color={isSeller ? "#ef741c" : "#ad3020"}
-            />
+            {isSeller ? (
+              <>
+                <StatCard
+                  value={sellerOfferCount}
+                  label="Ofertas enviadas"
+                  color="#ef741c"
+                />
+                <StatCard
+                  value={sellerAcceptedCount}
+                  label="Aceptadas"
+                  color="#ef741c"
+                />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  value={buyerRequestCount}
+                  label="Solicitudes"
+                  color="#ad3020"
+                />
+                <StatCard
+                  value={buyerActiveCount}
+                  label="Activas"
+                  color="#ad3020"
+                />
+              </>
+            )}
           </View>
         </Animated.View>
 
         {/* Actions */}
         <Animated.View entering={FadeInDown.duration(400).delay(200)} className="px-4 mt-4">
           <TouchableOpacity
-            onPress={() => navigation.navigate("ChangePassword")}
+            onPress={() => (navigation as any).navigate("ChangePassword")}
             className="bg-white flex-row items-center px-4 py-4 rounded-2xl mb-2"
             style={styles.actionCard}
           >

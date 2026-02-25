@@ -30,7 +30,7 @@ export type SellerTabParamList = {
 // Buyer Root Stack
 export type BuyerStackParamList = {
   BuyerMain: NavigatorScreenParams<BuyerTabParamList>;
-  CreateRequest: undefined;
+  CreateRequest: { category?: string } | undefined;
   RequestDetail: { requestId: string };
   Chat: { chatId: string };
   ChangePassword: undefined;
@@ -43,6 +43,7 @@ export type SellerStackParamList = {
   SendOffer: { requestId: string };
   AddProduct: undefined;
   Chat: { chatId: string };
+  ChatsList: undefined;
   ChangePassword: undefined;
 };
 

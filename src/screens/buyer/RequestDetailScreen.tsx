@@ -210,8 +210,8 @@ export default function RequestDetailScreen({ route, navigation }: RequestDetail
           </Card>
         )}
 
-        {/* Offers section (only for OPEN requests) */}
-        {request.status === "OPEN" && isBuyer && (
+        {/* Offers section (OPEN = can accept; NEGOTIATING = read-only view) */}
+        {(request.status === "OPEN" || request.status === "NEGOTIATING") && isBuyer && (
           <View className="mt-4">
             <View className="flex-row justify-between items-center mb-3">
               <Text className="text-base font-bold text-text-primary">
@@ -247,7 +247,7 @@ export default function RequestDetailScreen({ route, navigation }: RequestDetail
               renderItem={({ item: offer }) => (
                 <OfferCard
                   offer={offer}
-                  showActions={isBuyer}
+                  showActions={isBuyer && request.status === "OPEN"}
                   onAccept={() => handleAcceptOffer(offer.id)}
                 />
               )}

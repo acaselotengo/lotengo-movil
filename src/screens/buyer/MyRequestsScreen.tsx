@@ -73,6 +73,9 @@ export default function MyRequestsScreen({ navigation }: MyRequestsScreenProps) 
         data={filtered}
         keyExtractor={(item) => item.request.id}
         renderItem={renderItem}
+        initialNumToRender={8}
+        maxToRenderPerBatch={4}
+        windowSize={5}
         ListEmptyComponent={
           <EmptyState
             icon="document-text-outline"

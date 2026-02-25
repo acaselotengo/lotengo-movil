@@ -1,6 +1,7 @@
-import { ChangePasswordScreenProps } from "../../types/navigation";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { BuyerStackParamList, SellerStackParamList } from "../../types/navigation";
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, ScrollView, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,6 +10,10 @@ import PasswordField from "../../components/ui/PasswordField";
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import { useAuthStore } from "../../store/authStore";
 import { changePassword } from "../../services/authService";
+
+type ChangePasswordScreenProps =
+  | NativeStackScreenProps<BuyerStackParamList, "ChangePassword">
+  | NativeStackScreenProps<SellerStackParamList, "ChangePassword">;
 
 const schema = z
   .object({
@@ -50,7 +55,10 @@ export default function ChangePasswordScreen({ navigation }: ChangePasswordScree
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-white"
+    >
       <AppHeader title="Cambiar Contraseña" showBack />
       <ScrollView className="px-6 pt-4" keyboardShouldPersistTaps="handled">
         <Controller
@@ -98,7 +106,8 @@ export default function ChangePasswordScreen({ navigation }: ChangePasswordScree
           loading={loading}
           className="mt-4"
         />
+        <View className="h-8" />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

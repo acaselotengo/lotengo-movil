@@ -33,9 +33,9 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function CreateRequestScreen({ navigation }: CreateRequestScreenProps) {
+export default function CreateRequestScreen({ navigation, route }: CreateRequestScreenProps) {
   const user = useAuthStore((s) => s.user);
-  const [category, setCategory] = useState<string>("");
+  const [category, setCategory] = useState<string>(route.params?.category ?? "");
   const [location, setLocation] = useState<Location | undefined>();
   const [loading, setLoading] = useState(false);
 

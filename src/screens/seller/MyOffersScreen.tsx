@@ -8,6 +8,7 @@ import AppHeader from "../../components/ui/AppHeader";
 import StatusBadge from "../../components/ui/StatusBadge";
 import EmptyState from "../../components/ui/EmptyState";
 import { useAuthStore } from "../../store/authStore";
+import { getChatsByUser } from "../../services/chatService";
 import { getOffersBySeller } from "../../services/offerService";
 import { getDb } from "../../db/mockDb";
 import {
@@ -30,10 +31,14 @@ type EnrichedOffer = {
 export default function MyOffersScreen({ navigation }: MyOffersScreenProps) {
   const user = useAuthStore((s) => s.user);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [chatCount, setChatCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
-      if (user) setOffers(getOffersBySeller(user.id));
+      if (user) {
+        setOffers(getOffersBySeller(user.id));
+        setChatCount(getChatsByUser(user.id).length);
+      }
     }, [user?.id])
   );
 
@@ -118,9 +123,23 @@ export default function MyOffersScreen({ navigation }: MyOffersScreenProps) {
     [navigation]
   );
 
+  const chatAction = (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("ChatsList")}
+      className="w-9 h-9 items-center justify-center"
+    >
+      <Ionicons name="chatbubbles-outline" size={22} color="#ad3020" />
+      {chatCount > 0 && (
+        <View className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full items-center justify-center">
+          <Text className="text-white text-[9px] font-bold">{chatCount}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <View className="flex-1 bg-bg-light">
-      <AppHeader title="Mis Ofertas" />
+      <AppHeader title="Mis Ofertas" rightAction={chatAction} />
       <FlatList
         className="flex-1 px-4 pt-2"
         data={enrichedOffers}

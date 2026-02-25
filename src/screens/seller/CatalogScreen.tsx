@@ -1,5 +1,5 @@
 import { CatalogScreenProps } from "../../types/navigation";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { View, Text, FlatList, Alert, Dimensions } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import AppHeader from "../../components/ui/AppHeader";
@@ -28,9 +28,9 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     }, [reload])
   );
 
-  const categories = [...new Set(products.map((p) => p.category))];
+  const categories = useMemo(() => [...new Set(products.map((p) => p.category))], [products]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     Alert.alert("Eliminar producto", "¿Estás seguro?", [
       { text: "Cancelar" },
       {
@@ -42,12 +42,22 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
         style: "destructive",
       },
     ]);
-  };
+  }, [reload]);
+
+  const renderProduct = useCallback(({ item, index }: { item: Product; index: number }) => (
+    <View style={{ width: CARD_WIDTH }}>
+      <ProductCard
+        product={item}
+        onDelete={() => handleDelete(item.id)}
+        index={index}
+      />
+    </View>
+  ), [handleDelete]);
 
   return (
     <View className="flex-1 bg-bg-light">
       <AppHeader title="Mi Catálogo" />
-      <View className="px-4 pt-3">
+      <View className="flex-1 px-4 pt-3">
         <View className="flex-row mb-4">
           <StatCard value={products.length} label="Productos" color="#ef741c" />
           <StatCard value={categories.length} label="Categorías" color="#ef741c" />
@@ -58,15 +68,9 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 12 }}
-          renderItem={({ item, index }) => (
-            <View style={{ width: CARD_WIDTH }}>
-              <ProductCard
-                product={item}
-                onDelete={() => handleDelete(item.id)}
-                index={index}
-              />
-            </View>
-          )}
+          initialNumToRender={6}
+          maxToRenderPerBatch={4}
+          renderItem={renderProduct}
           ListEmptyComponent={
             <EmptyState
               icon="grid-outline"

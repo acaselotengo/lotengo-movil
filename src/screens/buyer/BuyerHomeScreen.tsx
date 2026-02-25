@@ -87,9 +87,9 @@ export default function BuyerHomeScreen({ navigation }: BuyerHomeScreenProps) {
                   <Text className="text-lg font-bold text-white">{user?.name}</Text>
                 </View>
               </View>
-              <TouchableOpacity className="w-10 h-10 bg-white/15 rounded-full items-center justify-center">
+              <View className="w-10 h-10 bg-white/15 rounded-full items-center justify-center">
                 <Ionicons name="notifications-outline" size={20} color="#fff" />
-              </TouchableOpacity>
+              </View>
             </View>
           </Animated.View>
 
@@ -126,7 +126,12 @@ export default function BuyerHomeScreen({ navigation }: BuyerHomeScreenProps) {
               {CATEGORIES.map((cat) => {
                 const colors = categoryColors[cat] || ["#8694b8", "#b8c3df"];
                 return (
-                  <View key={cat} className="items-center mr-4">
+                  <TouchableOpacity
+                    key={cat}
+                    className="items-center mr-4"
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate("CreateRequest", { category: cat })}
+                  >
                     <LinearGradient
                       colors={colors}
                       className="w-14 h-14 rounded-2xl items-center justify-center mb-1.5"
@@ -139,7 +144,7 @@ export default function BuyerHomeScreen({ navigation }: BuyerHomeScreenProps) {
                       />
                     </LinearGradient>
                     <Text className="text-xs text-text-secondary font-medium">{cat}</Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>

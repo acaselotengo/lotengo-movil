@@ -1,4 +1,5 @@
-import { ChatsListScreenProps } from "../../types/navigation";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ChatsListScreenProps, SellerStackParamList } from "../../types/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -13,9 +14,15 @@ import { getRequestById } from "../../services/requestService";
 import { formatDate } from "../../utils/helpers";
 import { Chat } from "../../types";
 
-export default function ChatsListScreen({ navigation }: ChatsListScreenProps) {
+type ChatsListProps =
+  | ChatsListScreenProps
+  | NativeStackScreenProps<SellerStackParamList, "ChatsList">;
+
+export default function ChatsListScreen({ navigation }: ChatsListProps) {
   const user = useAuthStore((s) => s.user);
   const [chats, setChats] = useState<Chat[]>([]);
+  // Show back button when pushed onto a stack (seller context via MyOffersScreen)
+  const showBack = navigation.canGoBack();
 
   useFocusEffect(
     useCallback(() => {
@@ -43,7 +50,7 @@ export default function ChatsListScreen({ navigation }: ChatsListScreenProps) {
       return (
         <Animated.View entering={FadeInDown.delay(index * 50).duration(400).springify()}>
           <TouchableOpacity
-            onPress={() => navigation.navigate("Chat", { chatId: chat.id })}
+            onPress={() => (navigation as any).navigate("Chat", { chatId: chat.id })}
             className="bg-white mx-4 mb-2 px-4 py-3.5 rounded-2xl flex-row items-center"
             style={styles.card}
             activeOpacity={0.7}
@@ -80,7 +87,7 @@ export default function ChatsListScreen({ navigation }: ChatsListScreenProps) {
 
   return (
     <View className="flex-1 bg-bg-light">
-      <AppHeader title="Mensajes" />
+      <AppHeader title="Mensajes" showBack={showBack} />
       {chats.length === 0 ? (
         <EmptyState
           icon="chatbubbles-outline"
@@ -94,6 +101,7 @@ export default function ChatsListScreen({ navigation }: ChatsListScreenProps) {
           data={enrichedChats}
           keyExtractor={(item) => item.chat.id}
           renderItem={renderChat}
+          initialNumToRender={10}
           contentContainerStyle={{ paddingTop: 8, paddingBottom: 20 }}
         />
       )}

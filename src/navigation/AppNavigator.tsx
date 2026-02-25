@@ -10,6 +10,7 @@ import SellerTabs from "./SellerTabs";
 import { BuyerStackParamList, SellerStackParamList } from "../types/navigation";
 
 import ChatScreen from "../screens/shared/ChatScreen";
+import ChatsListScreen from "../screens/shared/ChatsListScreen";
 import ChangePasswordScreen from "../screens/shared/ChangePasswordScreen";
 import CreateRequestScreen from "../screens/buyer/CreateRequestScreen";
 import RequestDetailScreen from "../screens/buyer/RequestDetailScreen";
@@ -42,6 +43,7 @@ function SellerStack() {
       <SellerRootStack.Screen name="SendOffer" component={SendOfferScreen} />
       <SellerRootStack.Screen name="AddProduct" component={AddProductScreen} />
       <SellerRootStack.Screen name="Chat" component={ChatScreen} />
+      <SellerRootStack.Screen name="ChatsList" component={ChatsListScreen} />
       <SellerRootStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     </SellerRootStack.Navigator>
   );

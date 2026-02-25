@@ -1,6 +1,6 @@
 import { ForgotPasswordScreenProps } from "../../types/navigation";
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,40 +36,46 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-6" keyboardShouldPersistTaps="handled">
-      <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 mb-6">
-        <Ionicons name="chevron-back" size={24} color="#15163e" />
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-white"
+    >
+      <ScrollView className="flex-1 px-6" keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-4 mb-6">
+          <Ionicons name="chevron-back" size={24} color="#15163e" />
+        </TouchableOpacity>
 
-      <Text className="text-2xl font-bold text-text-primary mb-2">
-        Recuperar Contraseña
-      </Text>
-      <Text className="text-sm text-text-secondary mb-6">
-        Ingresa tu correo electrónico y te enviaremos un código de verificación.
-      </Text>
+        <Text className="text-2xl font-bold text-text-primary mb-2">
+          Recuperar Contraseña
+        </Text>
+        <Text className="text-sm text-text-secondary mb-6">
+          Ingresa tu correo electrónico y te enviaremos un código de verificación.
+        </Text>
 
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, value } }) => (
-          <TextField
-            label="Correo electrónico"
-            placeholder="nombre@ejemplo.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={value}
-            onChangeText={onChange}
-            error={errors.email?.message}
-          />
-        )}
-      />
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, value } }) => (
+            <TextField
+              label="Correo electrónico"
+              placeholder="nombre@ejemplo.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={value}
+              onChangeText={onChange}
+              error={errors.email?.message}
+            />
+          )}
+        />
 
-      <PrimaryButton
-        title="Enviar código"
-        onPress={handleSubmit(onSubmit)}
-        loading={loading}
-        className="mt-4"
-      />
-    </ScrollView>
+        <PrimaryButton
+          title="Enviar código"
+          onPress={handleSubmit(onSubmit)}
+          loading={loading}
+          className="mt-4"
+        />
+        <View className="h-8" />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

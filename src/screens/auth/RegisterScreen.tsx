@@ -15,6 +15,7 @@ import { z } from "zod";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import TextField from "../../components/ui/TextField";
+import SelectField from "../../components/ui/SelectField";
 import PasswordField from "../../components/ui/PasswordField";
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import GoogleButton from "../../components/ui/GoogleButton";
@@ -199,11 +200,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               name="department"
               render={({ field: { onChange, value } }) => (
                 <View className="flex-1 mr-2">
-                  <TextField
+                  <SelectField
                     label="Departamento"
                     placeholder="Selecciona"
                     value={value}
-                    onChangeText={onChange}
+                    options={DEPARTMENTS}
+                    onSelect={onChange}
                   />
                 </View>
               )}
