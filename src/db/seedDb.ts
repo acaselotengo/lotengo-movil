@@ -12,9 +12,10 @@ export const seedDb: Database = {
       createdAt: "2026-01-15T10:00:00Z",
       ratingAvg: 4.5,
       ratingCount: 2,
-      department: "Antioquia",
-      city: "Medellín",
-      address: "Carrera 43A #1-50",
+      department: "Meta",
+      city: "Villavicencio",
+      address: "Conjunto Los Cerezos, casa 186 Alborada",
+      location: { lat: 4.1420, lng: -73.6266, address: "Conjunto Los Cerezos, Villavicencio" },
     },
     {
       id: "u2",
