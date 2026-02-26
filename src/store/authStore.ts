@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { User } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDb } from "../db/mockDb";
 
 interface AuthState {
   user: User | null;
@@ -35,7 +36,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const raw = await AsyncStorage.getItem(AUTH_KEY);
       if (raw) {
-        set({ user: JSON.parse(raw), isLoading: false });
+        const stored = JSON.parse(raw) as User;
+        // Use fresh data from DB (includes migrations) to keep user profile up to date
+        const freshFromDb = getDb().users.find((u) => u.id === stored.id);
+        set({ user: freshFromDb ?? stored, isLoading: false });
       } else {
         set({ isLoading: false });
       }
