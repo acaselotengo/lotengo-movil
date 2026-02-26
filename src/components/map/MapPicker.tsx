@@ -37,6 +37,7 @@ export default function MapPicker({
   height = 200,
 }: MapPickerProps) {
   const mapRef = useRef<MapView>(null);
+  const isFirstMount = useRef(true);
   const [region, setRegion] = useState<Region>(
     value
       ? {
@@ -49,6 +50,7 @@ export default function MapPicker({
   );
   const [marker, setMarker] = useState<Location | undefined>(value);
 
+  // GPS on first mount if no initial value
   useEffect(() => {
     (async () => {
       const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
@@ -65,6 +67,25 @@ export default function MapPicker({
       }
     })();
   }, []);
+
+  // Re-center map when parent changes value (e.g., user selects a frequent address)
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    if (value) {
+      const newRegion = {
+        latitude: value.lat,
+        longitude: value.lng,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      };
+      setMarker(value);
+      setRegion(newRegion);
+      mapRef.current?.animateToRegion(newRegion, 500);
+    }
+  }, [value?.lat, value?.lng]);
 
   const applyLocation = async (lat: number, lng: number) => {
     const loc: Location = { lat, lng };

@@ -5,6 +5,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Modal,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -17,6 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import TextField from "../../components/ui/TextField";
+import SelectField from "../../components/ui/SelectField";
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import Chip from "../../components/ui/Chip";
 import MapPicker from "../../components/map/MapPicker";
@@ -24,7 +26,7 @@ import AppHeader from "../../components/ui/AppHeader";
 import { useAuthStore } from "../../store/authStore";
 import { createRequest } from "../../services/requestService";
 import { getUserById, saveFrequentAddress } from "../../services/authService";
-import { CATEGORIES } from "../../utils/helpers";
+import { CATEGORIES, DEPARTMENTS } from "../../utils/helpers";
 import { Location } from "../../types";
 
 const schema = z.object({
@@ -91,6 +93,10 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
   const [category, setCategory] = useState<string>(route.params?.category ?? "");
   const [location, setLocation] = useState<Location | undefined>(baseUser?.location);
   const [loading, setLoading] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [newDept, setNewDept] = useState("");
+  const [newCity, setNewCity] = useState("");
+  const [newStreet, setNewStreet] = useState("");
 
   const registeredLocation = baseUser?.location;
   const frequentAddresses = baseUser?.frequentAddresses ?? [];
@@ -143,6 +149,22 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
 
   const addressLabel = (loc: Location) =>
     loc.address ?? `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
+
+  const handleAddNewAddress = () => {
+    if (!newStreet.trim() || !newCity.trim()) {
+      Alert.alert("Campos requeridos", "Ingresa al menos la ciudad y la dirección");
+      return;
+    }
+    const addressText = [newStreet.trim(), newCity.trim(), newDept].filter(Boolean).join(", ");
+    const baseLat = location?.lat ?? registeredLocation?.lat ?? 6.2442;
+    const baseLng = location?.lng ?? registeredLocation?.lng ?? -75.5812;
+    const newLoc: Location = { lat: baseLat, lng: baseLng, address: addressText };
+    setLocation(newLoc);
+    setShowAddressModal(false);
+    setNewDept("");
+    setNewCity("");
+    setNewStreet("");
+  };
 
   return (
     <KeyboardAvoidingView
@@ -278,17 +300,22 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
           {registeredLocation && (
             <View className="mb-3">
               <Text className="text-xs text-text-muted mb-1.5">Tu dirección registrada</Text>
-              <View className="bg-surface-tertiary rounded-xl px-3 py-2.5 flex-row items-start">
+              <TouchableOpacity
+                onPress={() => setLocation(registeredLocation)}
+                className={`rounded-xl px-3 py-2.5 flex-row items-start border ${
+                  location && isSameLocation(location, registeredLocation)
+                    ? "bg-primary/5 border-primary/30"
+                    : "bg-surface-tertiary border-transparent"
+                }`}
+              >
                 <Ionicons name="home-outline" size={14} color="#ad3020" style={{ marginTop: 1 }} />
                 <Text className="text-sm text-text-primary ml-2 flex-1">
                   {addressLabel(registeredLocation)}
                 </Text>
-                {location && !isSameLocation(location, registeredLocation) && (
-                  <TouchableOpacity onPress={() => setLocation(registeredLocation)}>
-                    <Text className="text-xs text-primary font-semibold">Usar</Text>
-                  </TouchableOpacity>
+                {location && isSameLocation(location, registeredLocation) && (
+                  <Ionicons name="checkmark-circle" size={16} color="#3a7558" />
                 )}
-              </View>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -313,6 +340,17 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
             </View>
           )}
 
+          {/* Botón agregar nueva dirección */}
+          <TouchableOpacity
+            onPress={() => setShowAddressModal(true)}
+            className="flex-row items-center mb-3 py-2"
+          >
+            <View className="w-6 h-6 bg-primary/10 rounded-full items-center justify-center mr-2">
+              <Ionicons name="add" size={14} color="#ad3020" />
+            </View>
+            <Text className="text-sm text-primary font-semibold">Agregar nueva dirección</Text>
+          </TouchableOpacity>
+
           {/* Mapa */}
           <MapPicker value={location} onChange={setLocation} height={180} />
 
@@ -320,7 +358,7 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
           {location ? (
             <View className="flex-row items-start mt-1">
               <Ionicons name="checkmark-circle" size={14} color="#3a7558" style={{ marginTop: 1 }} />
-              <Text className="text-xs text-text-primary ml-1.5 flex-1" numberOfLines={2}>
+              <Text className="text-sm text-text-primary ml-1.5 flex-1" numberOfLines={2}>
                 {addressLabel(location)}
               </Text>
             </View>
@@ -368,6 +406,73 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
           />
         </Animated.View>
       </ScrollView>
+
+      {/* Modal: Nueva dirección */}
+      <Modal visible={showAddressModal} animationType="slide" transparent>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.overlay}>
+            <View className="bg-white rounded-t-3xl" style={styles.sheet}>
+              <View className="flex-row items-center justify-between px-5 pt-5 pb-3 border-b border-border-light">
+                <Text className="text-base font-bold text-text-primary">Nueva dirección</Text>
+                <TouchableOpacity
+                  onPress={() => setShowAddressModal(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close" size={22} color="#8694b8" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                className="px-5 pt-4"
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <SelectField
+                  label="Departamento"
+                  placeholder="Selecciona un departamento"
+                  value={newDept}
+                  options={DEPARTMENTS}
+                  onSelect={setNewDept}
+                />
+                <TextField
+                  label="Ciudad"
+                  placeholder="ej. Medellín"
+                  value={newCity}
+                  onChangeText={setNewCity}
+                />
+                <TextField
+                  label="Dirección"
+                  placeholder="ej. Calle 43 #10-20, Apto 201"
+                  value={newStreet}
+                  onChangeText={setNewStreet}
+                  containerClassName="mb-2"
+                />
+                <Text className="text-xs text-text-muted mb-4">
+                  El pin en el mapa se actualizará a tu ubicación actual. Puedes ajustarlo tocando el mapa.
+                </Text>
+              </ScrollView>
+
+              <View className="flex-row px-5 pb-8 pt-3 gap-3">
+                <TouchableOpacity
+                  onPress={() => setShowAddressModal(false)}
+                  className="flex-1 py-3 rounded-xl border border-border-light items-center"
+                >
+                  <Text className="text-text-secondary font-semibold">Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleAddNewAddress}
+                  className="flex-1 py-3 rounded-xl bg-primary items-center"
+                >
+                  <Text className="text-white font-semibold">Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -379,5 +484,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 3,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    maxHeight: "80%",
   },
 });
