@@ -18,6 +18,19 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 0.02,
 };
 
+async function reverseGeocode(lat: number, lng: number): Promise<string | undefined> {
+  try {
+    const results = await ExpoLocation.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+    if (results[0]) {
+      const r = results[0];
+      return [r.street, r.district ?? r.subregion, r.city, r.region]
+        .filter(Boolean)
+        .join(", ");
+    }
+  } catch {}
+  return undefined;
+}
+
 export default function MapPicker({
   value,
   onChange,
@@ -53,11 +66,21 @@ export default function MapPicker({
     })();
   }, []);
 
-  const handlePress = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    const loc: Location = { lat: latitude, lng: longitude };
+  const applyLocation = async (lat: number, lng: number) => {
+    const loc: Location = { lat, lng };
     setMarker(loc);
     onChange(loc);
+    const address = await reverseGeocode(lat, lng);
+    if (address) {
+      const locWithAddress: Location = { lat, lng, address };
+      setMarker(locWithAddress);
+      onChange(locWithAddress);
+    }
+  };
+
+  const handlePress = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    applyLocation(latitude, longitude);
   };
 
   const goToMyLocation = async () => {
@@ -72,27 +95,16 @@ export default function MapPicker({
       };
       setRegion(newRegion);
       mapRef.current?.animateToRegion(newRegion, 500);
-      const newLoc: Location = {
-        lat: loc.coords.latitude,
-        lng: loc.coords.longitude,
-      };
-      setMarker(newLoc);
-      onChange(newLoc);
+      applyLocation(loc.coords.latitude, loc.coords.longitude);
     }
   };
 
   return (
-    <View className="mb-3">
-      <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-sm font-medium text-text-primary">
-          Ubicación de entrega
-        </Text>
-        <TouchableOpacity
-          onPress={goToMyLocation}
-          className="flex-row items-center"
-        >
+    <View className="mb-2">
+      <View className="flex-row items-center justify-end mb-1">
+        <TouchableOpacity onPress={goToMyLocation} className="flex-row items-center">
           <Ionicons name="locate" size={14} color="#ad3020" />
-          <Text className="text-xs text-primary ml-1">Mi ubicación</Text>
+          <Text className="text-xs text-primary ml-1">GPS actual</Text>
         </TouchableOpacity>
       </View>
       <View className="rounded-xl overflow-hidden border border-border-light" style={{ height }}>
@@ -105,27 +117,16 @@ export default function MapPicker({
         >
           {marker && (
             <Marker
-              coordinate={{
-                latitude: marker.lat,
-                longitude: marker.lng,
-              }}
+              coordinate={{ latitude: marker.lat, longitude: marker.lng }}
               draggable
               onDragEnd={(e) => {
                 const { latitude, longitude } = e.nativeEvent.coordinate;
-                const loc: Location = { lat: latitude, lng: longitude };
-                setMarker(loc);
-                onChange(loc);
+                applyLocation(latitude, longitude);
               }}
             />
           )}
         </MapView>
       </View>
-      {marker && (
-        <Text className="text-xs text-text-muted mt-1">
-          {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
-          {marker.address ? ` · ${marker.address}` : ""}
-        </Text>
-      )}
     </View>
   );
 }

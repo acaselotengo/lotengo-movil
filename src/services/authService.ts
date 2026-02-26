@@ -1,5 +1,5 @@
 import { getDb, saveDb, nextId } from "../db/mockDb";
-import { User, UserRole } from "../types";
+import { User, UserRole, Location } from "../types";
 
 export interface RegisterData {
   name: string;
@@ -121,4 +121,18 @@ export async function changePassword(
 
 export function getUserById(id: string): User | undefined {
   return getDb().users.find((u) => u.id === id);
+}
+
+export async function saveFrequentAddress(userId: string, location: Location): Promise<void> {
+  const db = getDb();
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) return;
+  if (!user.frequentAddresses) user.frequentAddresses = [];
+  const exists = user.frequentAddresses.some(
+    (a) => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lng - location.lng) < 0.0001
+  );
+  if (!exists) {
+    user.frequentAddresses = [location, ...user.frequentAddresses].slice(0, 5);
+    await saveDb();
+  }
 }

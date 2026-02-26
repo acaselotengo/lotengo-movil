@@ -4,6 +4,7 @@ import {
   View,
   Text,
   ScrollView,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -22,7 +23,7 @@ import MapPicker from "../../components/map/MapPicker";
 import AppHeader from "../../components/ui/AppHeader";
 import { useAuthStore } from "../../store/authStore";
 import { createRequest } from "../../services/requestService";
-import { getUserById } from "../../services/authService";
+import { getUserById, saveFrequentAddress } from "../../services/authService";
 import { CATEGORIES } from "../../utils/helpers";
 import { Location } from "../../types";
 
@@ -47,14 +48,52 @@ function SectionHeader({ icon, title }: { icon: keyof typeof Ionicons.glyphMap; 
   );
 }
 
+function isSameLocation(a: Location, b: Location) {
+  return Math.abs(a.lat - b.lat) < 0.0001 && Math.abs(a.lng - b.lng) < 0.0001;
+}
+
+function AddressChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      className={`mr-2 mb-1 px-3 py-1.5 rounded-full border flex-row items-center ${
+        selected ? "bg-primary border-primary" : "bg-surface-tertiary border-border-light"
+      }`}
+    >
+      <Ionicons
+        name={selected ? "checkmark-circle" : "location-outline"}
+        size={12}
+        color={selected ? "#fff" : "#ad3020"}
+      />
+      <Text
+        className={`text-xs font-medium ml-1 max-w-[160px] ${selected ? "text-white" : "text-text-primary"}`}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function CreateRequestScreen({ navigation, route }: CreateRequestScreenProps) {
   const user = useAuthStore((s) => s.user);
   const freshUser = user ? getUserById(user.id) : null;
+  const baseUser = freshUser ?? user;
+
   const [category, setCategory] = useState<string>(route.params?.category ?? "");
-  const [location, setLocation] = useState<Location | undefined>(
-    (freshUser ?? user)?.location
-  );
+  const [location, setLocation] = useState<Location | undefined>(baseUser?.location);
   const [loading, setLoading] = useState(false);
+
+  const registeredLocation = baseUser?.location;
+  const frequentAddresses = baseUser?.frequentAddresses ?? [];
 
   const {
     control,
@@ -84,6 +123,14 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
         category,
         location,
       });
+
+      // Guardar en frecuentes si es diferente a la dirección registrada
+      const isDifferentFromRegistered =
+        !registeredLocation || !isSameLocation(location, registeredLocation);
+      if (isDifferentFromRegistered) {
+        await saveFrequentAddress(user.id, location);
+      }
+
       Alert.alert("¡Publicada!", "Tu solicitud ya está visible para los vendedores", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
@@ -93,6 +140,9 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
       setLoading(false);
     }
   };
+
+  const addressLabel = (loc: Location) =>
+    loc.address ?? `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`;
 
   return (
     <KeyboardAvoidingView
@@ -115,9 +165,7 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
           className="px-5 pt-4 pb-8"
         >
           <Animated.View entering={FadeInDown.duration(400)}>
-            <Text className="text-xl font-bold text-white mb-1">
-              ¿Qué necesitas?
-            </Text>
+            <Text className="text-xl font-bold text-white mb-1">¿Qué necesitas?</Text>
             <Text className="text-sm text-white/75">
               Publica tu solicitud y recibe ofertas de vendedores cercanos
             </Text>
@@ -225,20 +273,62 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
           style={styles.card}
         >
           <SectionHeader icon="location-outline" title="UBICACIÓN DE ENTREGA" />
-          <MapPicker value={location} onChange={setLocation} height={200} />
-          {!location && (
+
+          {/* Dirección registrada */}
+          {registeredLocation && (
+            <View className="mb-3">
+              <Text className="text-xs text-text-muted mb-1.5">Tu dirección registrada</Text>
+              <View className="bg-surface-tertiary rounded-xl px-3 py-2.5 flex-row items-start">
+                <Ionicons name="home-outline" size={14} color="#ad3020" style={{ marginTop: 1 }} />
+                <Text className="text-sm text-text-primary ml-2 flex-1">
+                  {addressLabel(registeredLocation)}
+                </Text>
+                {location && !isSameLocation(location, registeredLocation) && (
+                  <TouchableOpacity onPress={() => setLocation(registeredLocation)}>
+                    <Text className="text-xs text-primary font-semibold">Usar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* Direcciones frecuentes */}
+          {frequentAddresses.length > 0 && (
+            <View className="mb-3">
+              <Text className="text-xs text-text-muted mb-1.5">Direcciones frecuentes</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 4 }}
+              >
+                {frequentAddresses.map((addr, i) => (
+                  <AddressChip
+                    key={i}
+                    label={addressLabel(addr)}
+                    selected={!!location && isSameLocation(location, addr)}
+                    onPress={() => setLocation(addr)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Mapa */}
+          <MapPicker value={location} onChange={setLocation} height={180} />
+
+          {/* Dirección seleccionada */}
+          {location ? (
+            <View className="flex-row items-start mt-1">
+              <Ionicons name="checkmark-circle" size={14} color="#3a7558" style={{ marginTop: 1 }} />
+              <Text className="text-xs text-text-primary ml-1.5 flex-1" numberOfLines={2}>
+                {addressLabel(location)}
+              </Text>
+            </View>
+          ) : (
             <View className="flex-row items-center mt-1">
               <Ionicons name="alert-circle-outline" size={13} color="#ad3020" />
               <Text className="text-xs text-primary ml-1 font-medium">
                 Toca el mapa para marcar el punto de entrega
-              </Text>
-            </View>
-          )}
-          {location && (
-            <View className="flex-row items-center mt-1">
-              <Ionicons name="checkmark-circle" size={13} color="#3a7558" />
-              <Text className="text-xs text-success ml-1 font-medium">
-                Punto de entrega marcado
               </Text>
             </View>
           )}
@@ -268,10 +358,7 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
         </Animated.View>
 
         {/* Publish button */}
-        <Animated.View
-          entering={FadeInDown.duration(400).delay(400)}
-          className="mx-4"
-        >
+        <Animated.View entering={FadeInDown.duration(400).delay(400)} className="mx-4">
           <PrimaryButton
             title="Publicar Solicitud"
             onPress={handleSubmit(onSubmit)}

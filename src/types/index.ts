@@ -34,6 +34,7 @@ export interface User {
   ratingAvg: number;
   ratingCount: number;
   location?: Location;
+  frequentAddresses?: Location[];
   department?: string;
   city?: string;
   address?: string;
