@@ -94,8 +94,8 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
   const [location, setLocation] = useState<Location | undefined>(baseUser?.location);
   const [loading, setLoading] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [newDept, setNewDept] = useState("");
-  const [newCity, setNewCity] = useState("");
+  const [newDept, setNewDept] = useState(baseUser?.department ?? "");
+  const [newCity, setNewCity] = useState(baseUser?.city ?? "");
   const [newStreet, setNewStreet] = useState("");
 
   const registeredLocation = baseUser?.location;
@@ -161,8 +161,8 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
     const newLoc: Location = { lat: baseLat, lng: baseLng, address: addressText };
     setLocation(newLoc);
     setShowAddressModal(false);
-    setNewDept("");
-    setNewCity("");
+    setNewDept(baseUser?.department ?? "");
+    setNewCity(baseUser?.city ?? "");
     setNewStreet("");
   };
 
