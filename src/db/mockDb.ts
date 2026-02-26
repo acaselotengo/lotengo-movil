@@ -15,6 +15,13 @@ export async function loadDb(): Promise<void> {
     const raw = await AsyncStorage.getItem(DB_KEY);
     if (raw) {
       db = JSON.parse(raw);
+      // Migration: fill location field for seed users that were persisted before it was added
+      seedDb.users.forEach((seedUser) => {
+        const dbUser = db.users.find((u) => u.id === seedUser.id);
+        if (dbUser && !dbUser.location && seedUser.location) {
+          dbUser.location = seedUser.location;
+        }
+      });
     } else {
       db = structuredClone(seedDb);
       await saveDb();

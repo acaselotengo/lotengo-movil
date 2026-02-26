@@ -22,6 +22,7 @@ import MapPicker from "../../components/map/MapPicker";
 import AppHeader from "../../components/ui/AppHeader";
 import { useAuthStore } from "../../store/authStore";
 import { createRequest } from "../../services/requestService";
+import { getUserById } from "../../services/authService";
 import { CATEGORIES } from "../../utils/helpers";
 import { Location } from "../../types";
 
@@ -48,8 +49,11 @@ function SectionHeader({ icon, title }: { icon: keyof typeof Ionicons.glyphMap; 
 
 export default function CreateRequestScreen({ navigation, route }: CreateRequestScreenProps) {
   const user = useAuthStore((s) => s.user);
+  const freshUser = user ? getUserById(user.id) : null;
   const [category, setCategory] = useState<string>(route.params?.category ?? "");
-  const [location, setLocation] = useState<Location | undefined>(user?.location);
+  const [location, setLocation] = useState<Location | undefined>(
+    (freshUser ?? user)?.location
+  );
   const [loading, setLoading] = useState(false);
 
   const {
