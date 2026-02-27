@@ -1,0 +1,29 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(head:*)",
+      "Bash(cd:*)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && npx tsc --noEmit 2>&1)",
+      "Bash(tail:*)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && git push origin main 2>&1)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && git push movil main 2>&1)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && git remote add wilmar https://github.com/wilmarcabezas/lotengo-movil.git && git push wilmar main 2>&1)",
+      "Bash(git log:*)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && git push wilmar main --force 2>&1)",
+      "Bash(xargs echo:*)",
+      "Bash(cd /c/InformacionWilmar/Desarrollos/LoTengo/LoTengoApp01/LoTengoApp && git push movil main 2>&1 && git push wilmar main 2>&1)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm install:*)",
+      "Bash(cmd:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(npx expo:*)"
+    ]
+  }
+}
