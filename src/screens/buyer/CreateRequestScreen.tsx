@@ -23,6 +23,7 @@ import PrimaryButton from "../../components/ui/PrimaryButton";
 import Chip from "../../components/ui/Chip";
 import MapPicker from "../../components/map/MapPicker";
 import AppHeader from "../../components/ui/AppHeader";
+import PublishRequestLoader from "../../components/ui/PublishRequestLoader";
 import { useAuthStore } from "../../store/authStore";
 import { createRequest } from "../../services/requestService";
 import { getUserById, saveFrequentAddress } from "../../services/authService";
@@ -93,6 +94,7 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
   const [category, setCategory] = useState<string>(route.params?.category ?? "");
   const [location, setLocation] = useState<Location | undefined>(baseUser?.location);
   const [loading, setLoading] = useState(false);
+  const [publishStep, setPublishStep] = useState<1 | 2 | 3>(1);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [newDept, setNewDept] = useState(baseUser?.department ?? "");
   const [newCity, setNewCity] = useState(baseUser?.city ?? "");
@@ -118,7 +120,14 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
     if (!user) return;
 
     setLoading(true);
+    setPublishStep(1);
     try {
+      // Paso 1: preparando (breve)
+      setPublishStep(1);
+      await new Promise((r) => setTimeout(r, 400));
+
+      // Paso 2: publicando en Firestore
+      setPublishStep(2);
       await createRequest({
         buyerId: user.id,
         title: data.title,
@@ -130,20 +139,22 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
         location,
       });
 
-      // Guardar en frecuentes si es diferente a la dirección registrada
+      // Paso 3: avisando (guardar dirección frecuente + notificaciones ya enviadas)
+      setPublishStep(3);
       const isDifferentFromRegistered =
         !registeredLocation || !isSameLocation(location, registeredLocation);
       if (isDifferentFromRegistered) {
         await saveFrequentAddress(user.id, location);
       }
+      await new Promise((r) => setTimeout(r, 500));
 
+      setLoading(false);
       Alert.alert("¡Publicada!", "Tu solicitud ya está visible para los vendedores", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (err: any) {
-      Alert.alert("Error", err.message);
-    } finally {
       setLoading(false);
+      Alert.alert("Error", err.message);
     }
   };
 
@@ -172,6 +183,8 @@ export default function CreateRequestScreen({ navigation, route }: CreateRequest
       className="flex-1 bg-bg-light"
     >
       <AppHeader title="Nueva Solicitud" showBack />
+
+      <PublishRequestLoader visible={loading} step={publishStep} />
 
       <ScrollView
         className="flex-1"

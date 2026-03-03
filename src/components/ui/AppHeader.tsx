@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AppHeaderProps {
   title: string;
@@ -11,8 +12,12 @@ interface AppHeaderProps {
 
 export default function AppHeader({ title, showBack = false, rightAction }: AppHeaderProps) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   return (
-    <View className="flex-row items-center justify-between px-5 pt-3 pb-4 bg-white" style={styles.header}>
+    <View
+      className="flex-row items-center justify-between px-5 pb-4 bg-white"
+      style={[styles.header, { paddingTop: insets.top + 16 }]}
+    >
       <View className="flex-row items-center flex-1">
         {showBack && (
           <TouchableOpacity

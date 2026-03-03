@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { View, Image, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Image, Text } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/authStore";
@@ -8,6 +8,7 @@ import AuthStack from "./AuthStack";
 import BuyerTabs from "./BuyerTabs";
 import SellerTabs from "./SellerTabs";
 import { BuyerStackParamList, SellerStackParamList } from "../types/navigation";
+import IntroScreen from "../screens/IntroScreen";
 
 import ChatScreen from "../screens/shared/ChatScreen";
 import ChatsListScreen from "../screens/shared/ChatsListScreen";
@@ -50,6 +51,7 @@ function SellerStack() {
 }
 
 export default function AppNavigator() {
+  const [showIntro, setShowIntro] = useState(true);
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
   const loadSession = useAuthStore((s) => s.loadSession);
@@ -61,6 +63,12 @@ export default function AppNavigator() {
     };
     init();
   }, [loadSession]);
+
+  if (showIntro) {
+    return (
+      <IntroScreen onFinish={() => setShowIntro(false)} />
+    );
+  }
 
   if (isLoading) {
     return (

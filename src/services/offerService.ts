@@ -1,5 +1,16 @@
 import { getDb, saveDb, nextId } from "../db/mockDb";
 import { Offer, OfferStatus, EtaUnit } from "../types";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import { getFirestoreDb } from "./firebase/client";
 
 export interface CreateOfferData {
   requestId: string;
@@ -32,9 +43,66 @@ export async function createOffer(data: CreateOfferData): Promise<Offer> {
     createdAt: new Date().toISOString(),
   };
 
+  // 1) Persist in Firestore
+  const firestoreDb = getFirestoreDb();
+
+  // Evitar oferta duplicada en Firestore
+  const existingOffersSnap = await getDocs(
+    query(
+      collection(firestoreDb, "offers"),
+      where("requestId", "==", data.requestId),
+      where("sellerId", "==", data.sellerId)
+    )
+  );
+  if (!existingOffersSnap.empty) {
+    throw new Error("Ya enviaste una oferta para esta solicitud");
+  }
+
+  await setDoc(doc(firestoreDb, "offers", offer.id), {
+    requestId: offer.requestId,
+    sellerId: offer.sellerId,
+    price: offer.price,
+    etaValue: offer.etaValue,
+    etaUnit: offer.etaUnit,
+    notes: offer.notes,
+    attachments: offer.attachments,
+    status: offer.status,
+    createdAt: offer.createdAt,
+  });
+
+  // 2) Notificar al comprador en Firestore (obtener buyerId desde la solicitud)
+  try {
+    const requestSnap = await getDoc(doc(firestoreDb, "requests", data.requestId));
+    const requestData = requestSnap.data();
+    const buyerId = requestData?.buyerId as string | undefined;
+
+    if (buyerId) {
+      let sellerName = "Vendedor";
+      try {
+        const sellerSnap = await getDoc(doc(firestoreDb, "users", data.sellerId));
+        const sellerData = sellerSnap.data();
+        if (sellerData?.name) sellerName = sellerData.name;
+      } catch {
+        // ignorar; usar "Vendedor"
+      }
+
+      await addDoc(collection(firestoreDb, "notifications"), {
+        userId: buyerId,
+        type: "NEW_OFFER",
+        title: "Nueva oferta recibida",
+        body: `${sellerName} envió una oferta de $${data.price.toLocaleString()}`,
+        payload: { requestId: data.requestId, offerId: offer.id },
+        createdAt: new Date().toISOString(),
+        read: false,
+      });
+    }
+  } catch (notifError) {
+    console.warn("[offerService] Notification to buyer failed:", notifError);
+  }
+
+  // Mantener mock local en sincronía para la UI actual
   db.offers.push(offer);
 
-  // Notify buyer
   const request = db.requests.find((r) => r.id === data.requestId);
   if (request) {
     const seller = db.users.find((u) => u.id === data.sellerId);

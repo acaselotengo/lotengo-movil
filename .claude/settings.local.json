@@ -23,7 +23,10 @@
       "Bash(cmd:*)",
       "Bash(node:*)",
       "Bash(git add:*)",
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(xargs cat:*)"
     ]
   }
 }

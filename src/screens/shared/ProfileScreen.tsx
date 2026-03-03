@@ -4,6 +4,7 @@ import { View, Text, ScrollView, Alert, TouchableOpacity, StyleSheet } from "rea
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PrimaryButton from "../../components/ui/PrimaryButton";
 import RatingStars from "../../components/ui/RatingStars";
 import StatCard from "../../components/ui/StatCard";
@@ -17,6 +18,7 @@ import { getOffersBySeller } from "../../services/offerService";
 type ProfileScreenProps = BuyerProfileScreenProps | SellerProfileScreenProps;
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
+  const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -78,7 +80,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           colors={isSeller ? ["#ef741c", "#f2a515"] : ["#ad3020", "#e14924"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-5 pt-6 pb-16 rounded-b-3xl"
+          className="px-5 pb-16 rounded-b-3xl"
+          style={{ paddingTop: insets.top + 24 }}
         >
           <Animated.View entering={FadeIn.duration(500)} className="items-center">
             <View

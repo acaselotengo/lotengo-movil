@@ -28,16 +28,27 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ],
       "config": {
         "googleMaps": {
           "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
-      }
+      },
+      "package": "com.anonymous.LoTengoApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -46,6 +57,17 @@
       "expo-location",
       "expo-image-picker",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "firebase": {
+        "databaseId": "lotengodb01",
+        "apiKey": "AIzaSyDO3xPz3h0cHG7Rz2VnKfIaYD5j-zivzf8",
+        "authDomain": "lotengo-app-7a801.firebaseapp.com",
+        "projectId": "lotengo-app-7a801",
+        "storageBucket": "lotengo-app-7a801.firebasestorage.app",
+        "messagingSenderId": "111875287766",
+        "appId": "1:111875287766:android:2af11e1a1f96d0eefb3777"
+      }
+    }
   }
 }

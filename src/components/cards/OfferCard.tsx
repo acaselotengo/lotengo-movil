@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Offer } from "../../types";
@@ -78,6 +78,22 @@ export default React.memo(
             <Text className="text-sm text-text-secondary mt-3 leading-5" numberOfLines={2}>
               {offer.notes}
             </Text>
+          )}
+
+          {offer.attachments && offer.attachments.length > 0 && (
+            <View className="mt-3">
+              <Text className="text-xs font-medium text-text-muted mb-1.5">Fotos del vendedor</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {offer.attachments.map((url, idx) => (
+                  <Image
+                    key={idx}
+                    source={{ uri: url }}
+                    className="w-16 h-16 rounded-lg bg-surface-tertiary mr-2"
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            </View>
           )}
 
           {showActions && offer.status === "SUBMITTED" && onAccept && (

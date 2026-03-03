@@ -7,10 +7,13 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import * as ImagePicker from "expo-image-picker";
 import AppHeader from "../../components/ui/AppHeader";
 import TextField from "../../components/ui/TextField";
 import PrimaryButton from "../../components/ui/PrimaryButton";
@@ -18,8 +21,11 @@ import SegmentedControl from "../../components/ui/SegmentedControl";
 import { useAuthStore } from "../../store/authStore";
 import { createOffer } from "../../services/offerService";
 import { getRequestById } from "../../services/requestService";
+import { uploadOfferImages } from "../../services/storageService";
 import { EtaUnit } from "../../types";
 import { Ionicons } from "@expo/vector-icons";
+
+const MAX_OFFER_IMAGES = 3;
 
 const schema = z.object({
   price: z.string().min(1, "Precio requerido"),
@@ -39,6 +45,31 @@ export default function SendOfferScreen({ route, navigation }: SendOfferScreenPr
   const request = getRequestById(requestId);
   const [etaUnit, setEtaUnit] = useState<EtaUnit>("min");
   const [loading, setLoading] = useState(false);
+  const [imageUris, setImageUris] = useState<string[]>([]);
+
+  const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permiso necesario", "Necesitamos acceso a tu galería para adjuntar fotos.");
+      return;
+    }
+    const remaining = MAX_OFFER_IMAGES - imageUris.length;
+    if (remaining <= 0) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      const newUris = result.assets.map((a) => a.uri).slice(0, remaining);
+      setImageUris((prev) => [...prev, ...newUris].slice(0, MAX_OFFER_IMAGES));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImageUris((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const {
     control,
@@ -66,6 +97,10 @@ export default function SendOfferScreen({ route, navigation }: SendOfferScreenPr
 
     setLoading(true);
     try {
+      let attachmentUrls: string[] = [];
+      if (imageUris.length > 0) {
+        attachmentUrls = await uploadOfferImages(imageUris);
+      }
       await createOffer({
         requestId,
         sellerId: user.id,
@@ -73,6 +108,7 @@ export default function SendOfferScreen({ route, navigation }: SendOfferScreenPr
         etaValue,
         etaUnit,
         notes: data.notes,
+        attachments: attachmentUrls.length > 0 ? attachmentUrls : undefined,
       });
       Alert.alert("Enviada", "Tu oferta fue enviada exitosamente");
       navigation.goBack();
@@ -175,6 +211,42 @@ export default function SendOfferScreen({ route, navigation }: SendOfferScreenPr
             />
           )}
         />
+
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-text-primary mb-2">
+            Fotos del producto (máx. {MAX_OFFER_IMAGES})
+          </Text>
+          {imageUris.length < MAX_OFFER_IMAGES && (
+            <TouchableOpacity
+              onPress={pickImages}
+              className="flex-row items-center py-3 px-4 bg-surface-tertiary border border-border-light border-dashed rounded-xl mb-2"
+            >
+              <Ionicons name="images-outline" size={20} color="#ad3020" />
+              <Text className="text-primary font-medium ml-2">
+                Agregar fotos ({imageUris.length}/{MAX_OFFER_IMAGES})
+              </Text>
+            </TouchableOpacity>
+          )}
+          {imageUris.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-1">
+              {imageUris.map((uri, index) => (
+                <View key={index} className="mr-2">
+                  <Image
+                    source={{ uri }}
+                    className="w-20 h-20 rounded-xl bg-surface-tertiary"
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => removeImage(index)}
+                    className="absolute -top-1 -right-1 w-6 h-6 bg-danger rounded-full items-center justify-center"
+                  >
+                    <Ionicons name="close" size={14} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
 
         <PrimaryButton
           title="Enviar Oferta"

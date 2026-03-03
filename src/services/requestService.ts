@@ -1,5 +1,7 @@
 import { getDb, saveDb, nextId } from "../db/mockDb";
 import { Request, RequestStatus, Location } from "../types";
+import { collection, doc, getDocs, query, setDoc, where, writeBatch } from "firebase/firestore";
+import { getFirestoreDb } from "./firebase/client";
 
 export interface CreateRequestData {
   buyerId: string;
@@ -28,6 +30,48 @@ export async function createRequest(data: CreateRequestData): Promise<Request> {
     createdAt: new Date().toISOString(),
   };
 
+  // 1) Persist in Firestore (real Firebase)
+  const firestoreDb = getFirestoreDb();
+  await setDoc(doc(firestoreDb, "requests", req.id), {
+    buyerId: req.buyerId,
+    title: req.title,
+    description: req.description,
+    quantity: req.quantity,
+    unit: req.unit,
+    notes: req.notes,
+    category: req.category,
+    location: req.location,
+    status: req.status,
+    createdAt: req.createdAt,
+  });
+
+  // 2) Broadcast notifications to all sellers (non-blocking)
+  try {
+    const sellersSnap = await getDocs(
+      query(collection(firestoreDb, "users"), where("role", "==", "seller"))
+    );
+
+    if (!sellersSnap.empty) {
+      const batch = writeBatch(firestoreDb);
+      for (const sellerDoc of sellersSnap.docs) {
+        const notifRef = doc(collection(firestoreDb, "notifications"));
+        batch.set(notifRef, {
+          userId: sellerDoc.id,
+          type: "NEW_REQUEST",
+          title: "Nueva solicitud",
+          body: `"${req.title}" - Nuevo pedido disponible`,
+          payload: { requestId: req.id },
+          createdAt: new Date().toISOString(),
+          read: false,
+        });
+      }
+      await batch.commit();
+    }
+  } catch (notifError) {
+    console.warn("[requestService] Notification broadcast failed:", notifError);
+  }
+
+  // Keep local mock DB in sync for the current UI
   db.requests.push(req);
 
   // Broadcast: create notifications for all sellers
