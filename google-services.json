@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "111875287766",
+    "project_id": "lotengo-app-7a801",
+    "storage_bucket": "lotengo-app-7a801.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111875287766:android:2af11e1a1f96d0eefb3777",
+        "android_client_info": {
+          "package_name": "com.acaselotengo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO3xPz3h0cHG7Rz2VnKfIaYD5j-zivzf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
